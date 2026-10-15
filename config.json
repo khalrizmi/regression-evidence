@@ -1,0 +1,5 @@
+{
+  "port": 8765,
+  "package": "",
+  "screenshot_dirs": ["/sdcard/Pictures/Screenshots", "/sdcard/DCIM/Screenshots"]
+}

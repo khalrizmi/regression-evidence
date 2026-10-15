@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Regression Evidence</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<section id="home" hidden>
+  <header class="bar"><h1>Regression Evidence</h1></header>
+  <div class="home-grid">
+    <div class="card">
+      <h2>Session</h2>
+      <ul id="session-list" class="session-list"></ul>
+      <label class="btn">Import session (.zip)<input type="file" id="import-file" accept=".zip" hidden></label>
+    </div>
+    <form id="new-form" class="card">
+      <h2>New session</h2>
+      <label>File Excel (.xlsx)<input type="file" id="xlsx-file" accept=".xlsx"></label>
+      <label>Sheet<select id="sheet-select"></select></label>
+      <p id="sheet-info" class="muted"></p>
+      <label>Platform<select id="platform-select"><option value="android">Android</option></select></label>
+      <label>Kolom Result<select id="result-select"></select></label>
+      <label>Device<select id="device-select"></select></label>
+      <label>Versi build<input id="build-input" placeholder="mis. 1.2.4"></label>
+      <button type="submit" class="btn primary">Mulai</button>
+      <p id="new-error" class="error"></p>
+    </form>
+  </div>
+</section>
+
+<section id="work" hidden>
+  <header class="bar">
+    <button id="back-btn" class="btn" title="Daftar session">←</button>
+    <div id="work-title"></div>
+    <span id="progress" class="pill"></span>
+    <span id="adb-status" class="pill"></span>
+    <div class="spacer"></div>
+    <button id="tab-work" class="btn tab active">Kerja</button>
+    <button id="tab-preview" class="btn tab">Preview Doc</button>
+    <button id="generate-btn" class="btn primary">Generate DOCX</button>
+    <button id="copy-result-btn" class="btn">Copy Result</button>
+    <button id="copy-remark-btn" class="btn">Copy Remark</button>
+    <label class="btn">Sync Excel<input type="file" id="sync-file" accept=".xlsx" hidden></label>
+    <button id="export-btn" class="btn">Export</button>
+  </header>
+  <div id="banner" class="banner" hidden></div>
+  <div id="work-view" class="work-grid">
+    <aside class="sidebar">
+      <div class="filters">
+        <input id="search" placeholder="Cari judul / No TC">
+        <select id="filter-module"></select>
+        <select id="filter-status">
+          <option value="">Semua status</option>
+          <option value="open">Belum selesai</option>
+          <option>Todo</option><option>Pass</option><option>Fail</option><option>Skip</option>
+        </select>
+        <select id="filter-type"></select>
+      </div>
+      <div id="tc-list"></div>
+    </aside>
+    <main class="detail">
+      <p id="detail-empty" class="muted pad">Pilih TC di daftar kiri (klik atau ↑/↓). Screenshot dari HP masuk ke TC yang aktif.</p>
+      <div id="detail-body" hidden>
+        <div id="detail-head"></div>
+        <div id="status-buttons" class="status-buttons">
+          <button class="btn" data-status="Pass">Pass (P)</button>
+          <button class="btn" data-status="Fail">Fail (F)</button>
+          <button class="btn" data-status="Skip">Skip (S)</button>
+          <button class="btn" data-status="Todo">Todo</button>
+        </div>
+        <textarea id="remark" rows="2" placeholder="Remark (mis. Terjadi kesalahan pada server)"></textarea>
+        <div id="images" class="images"></div>
+        <p class="muted small">Hotkey: ↑/↓ pindah TC · P/F/S status · Del hapus gambar terakhir</p>
+      </div>
+    </main>
+  </div>
+  <div id="preview-view" class="preview" hidden></div>
+</section>
+
+<dialog id="dialog">
+  <form method="dialog">
+    <div id="dialog-body"></div>
+    <menu>
+      <button value="cancel" class="btn" id="dialog-cancel">Batal</button>
+      <button value="ok" class="btn primary" id="dialog-ok">OK</button>
+    </menu>
+  </form>
+</dialog>
+<div id="lightbox" hidden><img alt=""></div>
+<div id="toasts"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>
