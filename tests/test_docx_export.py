@@ -73,3 +73,22 @@ def test_missing_image_file_is_skipped(tmp_path, xlsx):
     name = s.add_image(png_bytes())
     (s.shots / name).unlink()
     assert build_docx(s).exists()
+
+
+def test_images_of_a_case_fit_on_one_line(tmp_path, xlsx):
+    # Word wraps a picture that does not fit the text width onto the next line (and with phone
+    # screenshots, the next page), while Preview Doc shows them side by side.
+    s = new_session(tmp_path, xlsx)
+    for tc, count in (("TC01", 2), ("TC03", 3)):
+        s.set_active(tc)
+        for i in range(count):
+            s.add_image(png_bytes(width=100, height=222, color=(i, i, i)))
+    doc = Document(str(build_docx(s)))
+    section = doc.sections[0]
+    text_width = section.page_width - section.left_margin - section.right_margin
+    space = 0.2 * 360000  # generous width of the space between pictures, in EMU
+    rows = [p for p in doc.paragraphs if p._p.xpath(".//pic:pic")]
+    assert len(rows) == 2
+    for p in rows:
+        widths = [int(e) for e in p._p.xpath(".//wp:extent/@cx")]
+        assert sum(widths) + space * (len(widths) - 1) <= text_width

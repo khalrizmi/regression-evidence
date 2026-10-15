@@ -70,7 +70,7 @@ pre { white-space: pre-wrap; font: inherit; margin: 0; background: var(--bg); pa
 .images select { flex: 1; min-width: 0; font-size: 12px; }
 
 .preview { overflow: auto; flex: 1; min-height: 0; padding: 24px; }
-.page { background: #fff; max-width: 21.6cm; margin: 0 auto; padding: 2.5cm; box-shadow: 0 1px 4px rgba(0,0,0,.15); }
+.page { background: #fff; max-width: 21.59cm; margin: 0 auto; padding: 2.5cm; box-shadow: 0 1px 4px rgba(0,0,0,.15); }
 .page h1 { font-size: 20px; margin: 24px 0 8px; }
 .page h2 { font-weight: 400; font-size: 16px; cursor: pointer; }
 .page h2:hover { color: var(--primary); }

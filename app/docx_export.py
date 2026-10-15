@@ -14,6 +14,9 @@ PLATFORM_LABEL = {"android": "Android", "ios": "iOS"}
 UNSAFE_FILENAME = re.compile(r'[\\/:*?"<>|]+')
 
 
+MARGIN_CM = 2.5  # same as the page padding of Preview Doc (app/static/style.css .page)
+
+
 def image_width_cm(count: int) -> float:
     return 7.6 if count <= 2 else 5.1
 
@@ -68,6 +71,11 @@ def output_path(session) -> Path:
 
 def build_docx(session) -> Path:
     doc = Document()
+    # python-docx's default 3.17 cm side margins leave 15.24 cm: too narrow for 2 x 7.6 cm or 3 x 5.1 cm,
+    # so Word would wrap the last picture onto the next page instead of beside the others.
+    for section in doc.sections:
+        section.left_margin = section.right_margin = Cm(MARGIN_CM)
+        section.top_margin = section.bottom_margin = Cm(MARGIN_CM)
     layout = doc_layout(session)
     total = sum(len(m["cases"]) for m in layout)
     written = 0
