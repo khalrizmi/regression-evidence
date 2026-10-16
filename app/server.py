@@ -145,7 +145,7 @@ class App:
         self.close()
         with self.lock:
             session = Session.create(self.sessions_dir, sheet, xlsx, platform, build, column,
-                                     str(body.get("device", "")))
+                                     str(body.get("device", "")), str(body.get("doc_type") or "regression"))
             self._attach(session)
         return self.state({})
 
@@ -252,7 +252,8 @@ class App:
 
     def preview(self, _q) -> dict:
         with self.lock:
-            return {"layout": docx_export.doc_layout(self.require())}
+            session = self.require()
+            return {"layout": docx_export.doc_layout(session), "doc_type": session.doc_type}
 
     def warnings(self, _q) -> dict:
         with self.lock:

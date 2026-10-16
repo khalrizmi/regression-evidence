@@ -11,6 +11,7 @@ let pollTimer = null;
 let view = 'work';
 let newUpload = null;      // {upload_id, sheets, result_columns}
 let deviceList = [];
+const DOC_TYPE = {regression: 'Regresi', sit: 'SIT'};
 let renderedActive = null;
 let remarkTimer = null;
 const collapsed = new Set();
@@ -77,7 +78,7 @@ async function showHome() {
     ? `<li><span><b>${esc(s.id)}</b><br><small class="error">state.json rusak</small></span>
          <span><button class="btn" data-restore="${esc(s.id)}">Pulihkan backup</button>
          <button class="btn danger" data-delete="${esc(s.id)}">Hapus</button></span></li>`
-    : `<li><span><b>${esc(s.platform)} · ${esc(s.sheet)}</b> · build ${esc(s.build)}<br>
+    : `<li><span><b>${DOC_TYPE[s.doc_type]} · ${esc(s.platform)} · ${esc(s.sheet)}</b> · build ${esc(s.build)}<br>
          <small class="muted">${s.done}/${s.total} selesai · terakhir ${esc(s.opened.replace('T', ' '))}</small></span>
          <span><button class="btn primary" data-open="${esc(s.id)}">Lanjutkan</button>
          <button class="btn danger" data-delete="${esc(s.id)}" data-images="${s.images}">Hapus</button></span></li>`).join('')
@@ -166,6 +167,7 @@ $('#new-form').addEventListener('submit', (e) => {
       upload_id: newUpload.upload_id,
       sheet: $('#sheet-select').value,
       platform: $('#platform-select').value,
+      doc_type: $('#doctype-select').value,
       result_column: $('#result-select').value,
       build: $('#build-input').value,
       device: $('#device-select').value,
@@ -204,7 +206,7 @@ function activeCase() {
 
 function render() {
   const s = state.session;
-  $('#work-title').innerHTML = `<b>${esc(s.sheet)}</b> · ${esc(s.platform)} · build ${esc(s.build)}`;
+  $('#work-title').innerHTML = `<b>${esc(s.sheet)}</b> · ${DOC_TYPE[s.doc_type || 'regression']} · ${esc(s.platform)} · build ${esc(s.build)}`;
   $('#progress').textContent = `${state.progress.done}/${state.progress.total} selesai`;
   const connected = state.adb.state === 'connected';
   const preparing = ['connecting', 'loading', 'waiting'].includes(state.adb.state);
@@ -409,13 +411,28 @@ function setView(v) {
 
 async function renderPreview() {
   await guard(async () => {
-    const {layout} = await api('/api/preview');
-    const body = layout.map((m) => `<h1>${esc(m.module)}</h1>` + m.cases.map((c) => `
+    const {layout, doc_type: docType} = await api('/api/preview');
+    const images = (c) => `<div class="pv-images">${c.images.map((n) =>
+      `<img src="/shots/${encodeURIComponent(n)}" style="width:${c.width_cm}cm" alt="">`).join('')}</div>`;
+    const lines = (text) => (text || '').split('\n').filter((l) => l.trim()).map((l) => `<p>${esc(l)}</p>`).join('');
+    const sitCase = (c) => `
+      <table class="pv-sit">
+        <tr><th>No. TC</th><td><span class="pv-link" data-tc="${esc(c.tc_no)}">${esc(c.label)}</span></td></tr>
+        <tr><th>Scenario</th><td>${esc(c.title)}</td></tr>
+        <tr><th>Category</th><td>${esc(c.type)}</td></tr>
+        <tr><th>Steps</th><td>${lines(c.steps)}</td></tr>
+        <tr><th>Expected Result</th><td>${lines(c.expected)}</td></tr>
+        <tr><th>Screen Capture</th><td>${images(c)}</td></tr>
+      </table>`;
+    const body = docType === 'sit'
+      ? layout.flatMap((m) => m.cases).map(sitCase).join('')
+      : layout.map((m) => `<h1>${esc(m.module)}</h1>` + m.cases.map((c) => `
       <section class="pv-case">
         <h2 data-tc="${esc(c.tc_no)}">${esc(c.heading)}</h2>
-        <div class="pv-images">${c.images.map((n) => `<img src="/shots/${encodeURIComponent(n)}" style="width:${c.width_cm}cm" alt="">`).join('')}</div>
+        ${images(c)}
       </section>`).join('')).join('');
-    $('#preview-view').innerHTML = `<div class="page">${body || '<p class="muted">Belum ada isi.</p>'}</div>`;
+    const page = docType === 'sit' ? 'page sit' : 'page';
+    $('#preview-view').innerHTML = `<div class="${page}">${body || '<p class="muted">Belum ada isi.</p>'}</div>`;
   });
 }
 

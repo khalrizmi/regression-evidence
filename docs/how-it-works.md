@@ -22,7 +22,7 @@ Cara install ada di [README](../README.md).
 
 ```mermaid
 flowchart LR
-    A[New session<br/>pilih .xlsx, sheet,<br/>kolom Result, build] --> B[Pilih TC]
+    A[New session<br/>pilih .xlsx, sheet, jenis<br/>Regresi/SIT, kolom Result, build] --> B[Pilih TC]
     B --> C[Jalankan test di HP]
     C --> D[Screenshot di HP]
     D --> E[Gambar masuk<br/>ke TC aktif]
@@ -197,9 +197,23 @@ Satu session = satu kombinasi sheet + platform + build, disimpan di
 
 ### Dokumen bukti `.docx`
 
+Jenis dokumen dipilih saat New session dan disimpan di session (`doc_type`); session lama = Regresi.
+
+**Regresi**
 - Nama file: `Regression _ <sheet> - <Platform> <build>.docx` di `out/`. Generate ulang menimpa file lama.
-- Struktur: **Heading 1** = modul → **Heading 2** = `TC<nnn> - <judul>` → semua gambar TC berjajar → page break.
+- Struktur: **Heading 1** = modul → **Heading 2** = `TC<nnn> - <judul>` (nomor mulai lagi dari TC001 di
+  setiap modul) → semua gambar TC berjajar → page break.
 - Lebar gambar: 1–2 gambar = 7,6 cm; 3 gambar atau lebih = 5,1 cm. Tinggi proporsional.
+
+**SIT**
+- Nama file: `SIT _ <sheet> - <Platform> <build>.docx` di `out/`.
+- Kertas Letter, margin 1,52 cm kiri-kanan dan 1,4 cm atas-bawah, Arial 9pt, tanpa heading.
+- Per TC satu tabel 2 kolom (2,38 cm + 16,16 cm, border hitam tipis, label tebal), lalu page break:
+  `No. TC` (TC001… berurutan di seluruh dokumen), `Scenario`, `Category` (kolom Type), `Steps` dan
+  `Expected Result` (satu paragraf per baris), `Screen Capture` (gambar berjajar di sel: 1–2 gambar
+  = 7,4 cm, 3 atau lebih = 5,0 cm).
+
+Keduanya:
 - Gambar di dokumen adalah salinan yang diperkecil (lebar maks 800 px, JPEG kualitas 85). File asli tidak diubah.
 - TC Skip tanpa gambar dan TC yang dihapus dari Excel tidak dimasukkan.
 

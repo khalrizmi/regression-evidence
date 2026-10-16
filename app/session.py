@@ -38,6 +38,9 @@ def initial_status(value: str) -> str:
     return {"pass": "Pass", "fail": "Fail", "no run": "Skip"}.get((value or "").strip().lower(), "Todo")
 
 
+DOC_TYPES = ("regression", "sit")
+
+
 def case_from_tc(tc: TestCase, result_column: str) -> dict:
     return {
         "tc_no": tc.tc_no,
@@ -69,7 +72,9 @@ class Session:
 
     @classmethod
     def create(cls, sessions_dir: Path, sheet: SheetData, xlsx_path: Path, platform: str,
-               build: str, result_column: str, device: str = "") -> "Session":
+               build: str, result_column: str, device: str = "", doc_type: str = "regression") -> "Session":
+        if doc_type not in DOC_TYPES:
+            raise SessionError(f"Jenis dokumen tidak dikenal: {doc_type}")
         name = f"{datetime.now():%Y-%m-%d}_{platform}_{slugify(build, 'nobuild')}_{slugify(sheet.sheet, 'sheet')}"
         root = unique_path(Path(sessions_dir) / name)
         for sub in ("shots", "trash", "out"):
@@ -83,6 +88,7 @@ class Session:
             "platform": platform,
             "build": build,
             "device": device,
+            "doc_type": doc_type,
             "created": _now(),
             "opened": _now(),
             "active": None,
@@ -131,13 +137,23 @@ class Session:
     def active_cases(self) -> list[dict]:
         return sorted((c for c in self.data["cases"] if not c["removed"]), key=lambda c: c["row"])
 
-    def headings(self) -> dict[str, str]:
+    @property
+    def doc_type(self) -> str:
+        return self.data.get("doc_type", "regression")  # sessions from before SIT support
+
+    def labels(self) -> dict[str, str]:
+        """Document TC number: regression restarts at TC001 per module, SIT counts through the whole doc."""
         counters: dict[str, int] = {}
         out: dict[str, str] = {}
         for c in self.active_cases():
-            counters[c["module"]] = counters.get(c["module"], 0) + 1
-            out[c["tc_no"]] = f"TC{counters[c['module']]:03d} - {c['title']}"
+            key = c["module"] if self.doc_type == "regression" else ""
+            counters[key] = counters.get(key, 0) + 1
+            out[c["tc_no"]] = f"TC{counters[key]:03d}"
         return out
+
+    def headings(self) -> dict[str, str]:
+        labels = self.labels()
+        return {c["tc_no"]: f"{labels[c['tc_no']]} - {c['title']}" for c in self.active_cases()}
 
     def progress(self) -> dict:
         cases = self.active_cases()
@@ -237,6 +253,7 @@ def list_sessions(sessions_dir: Path) -> list[dict]:
                 "opened": data.get("opened", ""),
                 "done": progress["done"],
                 "total": progress["total"],
+                "doc_type": data.get("doc_type", "regression"),
                 "images": sum(len(c["images"]) for c in data["cases"]),
                 "broken": False,
             })

@@ -39,9 +39,10 @@ def png_bytes(width=100, height=200, color=(200, 30, 30), fmt="PNG", mode="RGB")
     return buf.getvalue()
 
 
-def new_session(tmp_path, xlsx_path, result_column="Result Android (Existing)"):
+def new_session(tmp_path, xlsx_path, result_column="Result Android (Existing)", doc_type="regression"):
     from app.session import Session
     from app.tcsource import load_sheet
 
     sheet = load_sheet(xlsx_path, "Regresi")
-    return Session.create(tmp_path / "sessions", sheet, xlsx_path, "android", "1.2.4", result_column, "SER1")
+    return Session.create(tmp_path / "sessions", sheet, xlsx_path, "android", "1.2.4", result_column, "SER1",
+                          doc_type)

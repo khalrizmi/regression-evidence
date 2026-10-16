@@ -227,3 +227,21 @@ def test_delete_session_removes_folder_and_closes_it(server, xlsx):
     status, _ = jcall(base, "/api/sessions/delete", {"id": "../outside"})
     assert status == 400
     assert app.sessions_dir.is_dir()
+
+
+def test_sit_session_preview_and_generate(server, xlsx):
+    app, base = server
+    _, up = jcall(base, "/api/upload/xlsx", raw=xlsx.read_bytes(), headers={"X-Filename": "tc.xlsx"})
+    body = {"upload_id": up["upload_id"], "sheet": "Regresi", "platform": "android",
+            "result_column": "", "build": "1.0", "device": "", "doc_type": "sit"}
+    status, st = jcall(base, "/api/sessions/create", body)
+    assert status == 200 and st["session"]["doc_type"] == "sit"
+    _, pv = jcall(base, "/api/preview")
+    assert pv["doc_type"] == "sit"
+    assert [c["label"] for m in pv["layout"] for c in m["cases"]] == ["TC001", "TC002", "TC003"]
+    _, gen = jcall(base, "/api/generate", {})
+    assert gen["name"] == "SIT _ Regresi - Android 1.0.docx"
+    _, listing = jcall(base, "/api/sessions")
+    assert listing["sessions"][0]["doc_type"] == "sit"
+    status, err = jcall(base, "/api/sessions/create", {**body, "doc_type": "uat"})
+    assert status == 400 and "Jenis dokumen" in err["error"]

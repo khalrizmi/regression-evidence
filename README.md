@@ -158,7 +158,8 @@ Penting:
 
 ## Pemakaian singkat
 
-1. **New session:** pilih file `.xlsx` → sheet → kolom Result → versi build → **Mulai**.
+1. **New session:** pilih file `.xlsx` → sheet → jenis dokumen (**Regresi** / **SIT**) → kolom Result →
+   versi build → **Mulai**.
    Pilih "(tanpa kolom result)" bila semua TC ingin mulai dari Todo.
 2. Pilih TC (klik, atau `↑` `↓`), jalankan test, lalu tekan tombol screenshot di HP. Gambar masuk ke TC aktif.
 3. Tandai `P` Pass / `F` Fail / `S` Skip, isi Remark bila perlu.
