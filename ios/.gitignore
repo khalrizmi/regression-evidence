@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+sessions/
+.tmp/
+.requirements.hash
+exports/
+config.json
+.DS_Store
