@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Regression Evidence · iOS</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<section id="home">
+  <header class="top"><h1>Regression Evidence <span class="pill">iOS</span></h1>
+    <button id="btnSetupHome" class="ghost">Setup iPhone</button></header>
+  <div class="cols">
+    <div class="card">
+      <h2>Session</h2>
+      <div id="sessionList" class="muted">Memuat…</div>
+      <div class="row" style="justify-content:flex-start"><button id="btnImport">Import session (.zip)</button>
+        <input type="file" id="fImport" accept=".zip" class="hidden"></div>
+    </div>
+    <div class="card">
+      <h2>New session</h2>
+      <label>File TC (.xlsx)<input type="file" id="fFile" accept=".xlsx"></label>
+      <label>Sheet<select id="fSheet" disabled></select></label>
+      <label>Jenis dokumen
+        <select id="fDoc"><option value="regression">Regresi</option><option value="sit">SIT</option></select></label>
+      <label>Kolom Result<select id="fResult" disabled></select></label>
+      <label>Versi build<input id="fBuild" placeholder="mis. 5.12.0 (1234)"></label>
+      <label>Device (opsional)<input id="fDevice" placeholder="mis. iPhone 15, iOS 18.1"></label>
+      <button id="btnStart" class="primary" disabled>Mulai</button>
+      <div id="newErr" class="err"></div>
+    </div>
+  </div>
+</section>
+
+<section id="work" class="hidden">
+  <header class="top">
+    <div><button id="btnHome" class="ghost">‹ Home</button>
+      <strong id="wTitle"></strong> <span class="muted" id="wProg"></span></div>
+    <div class="actions">
+      <button id="btnSetup" class="ghost">Setup iPhone</button>
+      <button id="btnExport">Export</button><button id="btnSync">Sync Excel</button><input type="file" id="fSync" accept=".xlsx" class="hidden">
+      <button id="btnPreview">Preview Doc</button>
+      <button id="btnResult">Copy Result</button>
+      <button id="btnRemark">Copy Remark</button>
+      <button id="btnGen" class="primary">Generate DOCX</button>
+    </div>
+  </header>
+  <div class="work">
+    <aside>
+      <div class="filters">
+        <select id="fStatus"><option value="all">Semua</option><option value="todo">Todo</option>
+          <option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select>
+        <input id="fSearch" placeholder="Cari TC…">
+      </div>
+      <div id="tcList"></div>
+    </aside>
+    <main id="detail"><p class="muted">Pilih TC di kiri, lalu screenshot lewat iPhone.</p></main>
+  </div>
+</section>
+
+<dialog id="setup">
+  <h2>Setup iPhone</h2>
+  <p>iPhone dan laptop harus di <b>Wi-Fi yang sama</b>. Pakai URL ini di Shortcut (action <i>Get Contents of URL</i>, method POST, Request Body: File):</p>
+  <input id="upUrl" readonly>
+  <div class="row"><button id="btnCopyUrl">Copy URL</button>
+    <button onclick="document.getElementById('setup').close()">Tutup</button></div>
+  <p class="muted">Langkah lengkap Shortcut + Back Tap ada di README (bagian "Setup iPhone"). Token bersifat rahasia; jangan dibagikan.</p>
+</dialog>
+
+<dialog id="preview" class="wide"><div class="row" style="margin:0 0 8px"><b id="pvTitle" style="flex:1;align-self:center"></b><button onclick="document.getElementById('preview').close()">Tutup</button></div><div id="pvBody"></div></dialog>
+<dialog id="lightbox"><img id="lbImg" alt=""><div class="row"><button onclick="document.getElementById('lightbox').close()">Tutup (Esc)</button></div></dialog>
+<div id="toasts"></div>
+<script src="/app.js"></script>
+</body>
+</html>
