@@ -68,7 +68,7 @@ pre { white-space: pre-wrap; font: inherit; margin: 0; background: var(--bg); pa
 .images figure { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px; width: 220px; }
 .images img { width: 100%; border-radius: 4px; cursor: zoom-in; display: block; }
 .images figcaption { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
-.images select { flex: 1; min-width: 0; font-size: 12px; }
+.images select { flex: 1 1 100%; min-width: 0; font-size: 12px; }
 
 .preview { overflow: auto; flex: 1; min-height: 0; padding: 24px; }
 .page { background: #fff; max-width: 21.59cm; margin: 0 auto; padding: 2.5cm; box-shadow: 0 1px 4px rgba(0,0,0,.15); }

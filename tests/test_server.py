@@ -261,3 +261,17 @@ def test_switch_doc_type_mid_session(server, xlsx):
     assert gen["name"].startswith("SIT _")
     status, err = jcall(base, "/api/doc-type", {"doc_type": "uat"})
     assert status == 400 and "Jenis dokumen" in err["error"]
+
+
+def test_copy_image_endpoint(server, xlsx):
+    app, base = server
+    create(base, xlsx)
+    jcall(base, "/api/active", {"tc_no": "TC01"})
+    app.on_image(app.session, png_bytes(), ".png")
+    status, st = jcall(base, "/api/image/copy", {"tc_no": "TC01", "name": "login_tc01_1.png", "to": "TC02"})
+    assert status == 200
+    images = {c["tc_no"]: c["images"] for c in st["session"]["cases"]}
+    assert images["TC01"] == ["login_tc01_1.png"] and images["TC02"] == ["login_tc02_1.png"]
+    assert call(base, "/shots/login_tc02_1.png")[0] == 200
+    status, err = jcall(base, "/api/image/copy", {"tc_no": "TC01", "name": "nope.png", "to": "TC02"})
+    assert status == 400 and "bukan milik" in err["error"]

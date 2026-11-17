@@ -299,15 +299,15 @@ function renderDetail() {
   renderedActive = c.tc_no;
 
   const targets = state.session.cases.filter((x) => !x.removed && x.tc_no !== c.tc_no).sort((a, b) => a.row - b.row);
-  const options = '<option value="">Pindah ke…</option>'
-    + targets.map((x) => `<option value="${esc(x.tc_no)}">${esc(x.module)} · ${esc(state.headings[x.tc_no])}</option>`).join('');
+  const targetOptions = targets.map((x) => `<option value="${esc(x.tc_no)}">${esc(x.module)} · ${esc(state.headings[x.tc_no])}</option>`).join('');
   $('#images').innerHTML = c.images.length ? c.images.map((name, i) => `<figure data-name="${esc(name)}">
       <img src="/shots/${encodeURIComponent(name)}" alt="${esc(name)}" data-zoom="1">
       <figcaption>
         <button class="btn sm" data-act="left" ${i === 0 ? 'disabled' : ''}>◀</button>
         <button class="btn sm" data-act="right" ${i === c.images.length - 1 ? 'disabled' : ''}>▶</button>
         <button class="btn sm danger" data-act="delete">Hapus</button>
-        <select data-act="move">${options}</select>
+        <select data-act="move" title="Pindahkan gambar ke TC lain"><option value="">Pindah ke…</option>${targetOptions}</select>
+        <select data-act="copy" title="Salin gambar ke TC lain, gambar ini tetap di sini"><option value="">Salin ke…</option>${targetOptions}</select>
       </figcaption></figure>`).join('')
     : '<p class="muted">Belum ada screenshot. Ambil screenshot di HP — gambar otomatis masuk ke TC ini.</p>';
 }
@@ -373,9 +373,17 @@ $('#images').addEventListener('click', (e) => {
 });
 
 $('#images').addEventListener('change', (e) => {
-  if (e.target.dataset.act !== 'move' || !e.target.value) return;
+  const act = e.target.dataset.act;
+  if (!['move', 'copy'].includes(act) || !e.target.value) return;
   const name = e.target.closest('figure').dataset.name;
-  imageAction('/api/image/move', {tc_no: activeCase().tc_no, name, to: e.target.value});
+  const to = e.target.value;
+  if (act === 'move') { imageAction('/api/image/move', {tc_no: activeCase().tc_no, name, to}); return; }
+  e.target.value = '';  // the picture stays here, so reset the picker for the next copy
+  guard(async () => {
+    await api('/api/image/copy', {tc_no: activeCase().tc_no, name, to});
+    await refresh();
+    toast(`Gambar disalin ke ${state.headings[to] || to}`, 'ok');
+  });
 });
 
 $('#lightbox').addEventListener('click', () => { $('#lightbox').hidden = true; });

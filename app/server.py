@@ -332,6 +332,7 @@ POST_ROUTES = {
     "/api/doc-type": lambda app, b: app.act(lambda s: s.set_doc_type(b.get("doc_type"))),
     "/api/image/delete": lambda app, b: app.act(lambda s: s.delete_image(b.get("tc_no"), b.get("name"))),
     "/api/image/move": lambda app, b: app.act(lambda s: s.move_image(b.get("tc_no"), b.get("name"), b.get("to"))),
+    "/api/image/copy": lambda app, b: app.act(lambda s: s.copy_image(b.get("tc_no"), b.get("name"), b.get("to"))),
     "/api/image/reorder": lambda app, b: app.act(lambda s: s.reorder_images(b.get("tc_no"), list(b.get("names") or []))),
     "/api/generate": lambda app, b: app.generate(b),
     "/api/open-folder": lambda app, b: app.open_out(b),

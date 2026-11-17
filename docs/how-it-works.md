@@ -40,7 +40,8 @@ flowchart LR
    screenshot per TC berbeda-beda.
 3. **Screenshot di HP:** gambar muncul di TC aktif dalam beberapa detik, dengan toast `+1 → <modul> TC<nnn>`.
 4. **Tandai status:** `P` Pass, `F` Fail, `S` Skip. Isi Remark bila perlu.
-5. **Kelola gambar:** klik untuk memperbesar; hapus, pindah ke TC lain, atau geser urutan.
+5. **Kelola gambar:** klik untuk memperbesar; hapus, pindah ke TC lain, salin ke TC lain (file
+   terpisah, gambar asli tetap), atau geser urutan.
    `Del` menghapus gambar terakhir TC aktif.
 6. **Preview Doc:** lihat susunan dokumen kapan saja. Isinya sama dengan hasil `.docx`.
 7. **Generate DOCX:** file disimpan di `sessions/<session>/out/`. Sebelumnya tool memperingatkan

@@ -233,6 +233,20 @@ class Session:
         self.save()
         return new
 
+    def copy_image(self, tc_no, name, to_tc) -> str:
+        """Duplicate a picture into another TC as its own file, so deleting either leaves the other."""
+        self._owned(tc_no, name)
+        dest = self.case(to_tc)
+        if dest["removed"]:
+            raise SessionError(f"TC sudah dihapus dari Excel: {to_tc}")
+        if to_tc == tc_no:
+            raise SessionError(f"Gambar {name} sudah ada di TC ini")
+        new = self._new_name(dest, Path(name).suffix)
+        shutil.copy2(self.shots / name, self.shots / new)
+        dest["images"].append(new)
+        self.save()
+        return new
+
     def reorder_images(self, tc_no, names) -> None:
         case = self.case(tc_no)
         if sorted(names) != sorted(case["images"]):

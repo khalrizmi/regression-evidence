@@ -157,3 +157,28 @@ def test_switch_doc_type_keeps_images_and_renumbers(tmp_path, xlsx):
     with pytest.raises(SessionError, match="Jenis dokumen"):
         s.set_doc_type("uat")
     assert s.doc_type == "sit"
+
+
+def test_copy_image_keeps_source_and_gives_target_its_own_file(tmp_path, xlsx):
+    s = new_session(tmp_path, xlsx)
+    s.set_active("TC01")
+    a = s.add_image(png_bytes())
+    copied = s.copy_image("TC01", a, "TC03")
+    assert copied == "transfer_tc03_1.png"
+    assert s.case("TC01")["images"] == [a] and (s.shots / a).exists()
+    assert s.case("TC03")["images"] == [copied]
+    assert (s.shots / copied).read_bytes() == (s.shots / a).read_bytes()
+
+    s.delete_image("TC01", a)  # the copy is independent of its source
+    assert (s.shots / copied).exists() and s.case("TC03")["images"] == [copied]
+
+    s.set_active("TC01")
+    b = s.add_image(png_bytes())
+    assert s.copy_image("TC01", b, "TC03") == "transfer_tc03_2.png"
+    with pytest.raises(SessionError, match="sudah ada di TC ini"):
+        s.copy_image("TC01", b, "TC01")
+    with pytest.raises(SessionError, match="bukan milik"):
+        s.copy_image("TC02", b, "TC03")
+    s.case("TC02")["removed"] = True
+    with pytest.raises(SessionError, match="dihapus dari Excel"):
+        s.copy_image("TC01", b, "TC02")
