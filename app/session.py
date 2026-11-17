@@ -175,6 +175,13 @@ class Session:
         self.case(tc_no)["remark"] = str(remark)
         self.save()
 
+    def set_doc_type(self, doc_type) -> None:
+        """Switch regression/SIT mid-run: only the generated layout and TC numbering change."""
+        if doc_type not in DOC_TYPES:
+            raise SessionError(f"Jenis dokumen tidak dikenal: {doc_type}")
+        self.data["doc_type"] = doc_type
+        self.save()
+
     def _new_name(self, case: dict, ext: str) -> str:
         stem = f"{slugify(case['module'], 'module')}_{slugify(case['tc_no'], 'tc')}"
         # Never reuse a deleted or moved image's name: the browser keeps showing the old picture for

@@ -198,6 +198,9 @@ Satu session = satu kombinasi sheet + platform + build, disimpan di
 ### Dokumen bukti `.docx`
 
 Jenis dokumen dipilih saat New session dan disimpan di session (`doc_type`); session lama = Regresi.
+Bisa diganti di tengah jalan lewat pilihan di header (`POST /api/doc-type`). Nama file screenshot
+tidak bergantung `doc_type`, jadi gambar, status, dan remark tetap; yang berubah hanya penomoran TC
+dan layout saat Preview Doc / Generate.
 
 **Regresi**
 - Nama file: `Regression _ <sheet> - <Platform> <build>.docx` di `out/`. Generate ulang menimpa file lama.

@@ -142,3 +142,18 @@ def test_deleted_or_moved_image_names_are_never_reused(tmp_path, xlsx):
     reopened = Session.open(s.root)  # survives a restart
     reopened.set_active("TC01")
     assert reopened.add_image(png_bytes(), ".jpg").endswith("_4.jpg")
+
+
+def test_switch_doc_type_keeps_images_and_renumbers(tmp_path, xlsx):
+    s = new_session(tmp_path, xlsx)
+    s.set_active("TC03")
+    name = s.add_image(png_bytes())
+    assert s.labels()["TC03"] == "TC001"
+    s.set_doc_type("sit")
+    assert s.doc_type == "sit"
+    assert s.labels()["TC03"] == "TC003"
+    assert s.case("TC03")["images"] == [name] and (s.shots / name).is_file()
+    assert Session.open(s.root).doc_type == "sit"
+    with pytest.raises(SessionError, match="Jenis dokumen"):
+        s.set_doc_type("uat")
+    assert s.doc_type == "sit"

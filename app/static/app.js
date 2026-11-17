@@ -206,7 +206,8 @@ function activeCase() {
 
 function render() {
   const s = state.session;
-  $('#work-title').innerHTML = `<b>${esc(s.sheet)}</b> · ${DOC_TYPE[s.doc_type || 'regression']} · ${esc(s.platform)} · build ${esc(s.build)}`;
+  $('#work-title').innerHTML = `<b>${esc(s.sheet)}</b> · ${esc(s.platform)} · build ${esc(s.build)}`;
+  $('#doctype-switch').value = s.doc_type || 'regression';
   $('#progress').textContent = `${state.progress.done}/${state.progress.total} selesai`;
   const connected = state.adb.state === 'connected';
   const preparing = ['connecting', 'loading', 'waiting'].includes(state.adb.state);
@@ -476,6 +477,18 @@ async function copyColumn(kind) {
 
 $('#copy-result-btn').addEventListener('click', () => copyColumn('result'));
 $('#copy-remark-btn').addEventListener('click', () => copyColumn('remark'));
+
+$('#doctype-switch').addEventListener('change', (e) => guard(async () => {
+  const docType = e.target.value;
+  try {
+    await api('/api/doc-type', {doc_type: docType});
+  } catch (err) {
+    e.target.value = state.session.doc_type || 'regression';
+    throw err;
+  }
+  await refresh();
+  toast(`Jenis dokumen: ${DOC_TYPE[docType]} — screenshot tetap, nomor TC & layout DOCX ikut berubah`, 'ok');
+}));
 
 $('#sync-file').addEventListener('change', (e) => guard(async () => {
   const file = e.target.files[0];

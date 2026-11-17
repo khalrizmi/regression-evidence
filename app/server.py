@@ -329,6 +329,7 @@ POST_ROUTES = {
     "/api/active": lambda app, b: app.act(lambda s: s.set_active(b.get("tc_no"))),
     "/api/status": lambda app, b: app.act(lambda s: s.set_status(b.get("tc_no"), b.get("status"))),
     "/api/remark": lambda app, b: app.act(lambda s: s.set_remark(b.get("tc_no"), b.get("remark", ""))),
+    "/api/doc-type": lambda app, b: app.act(lambda s: s.set_doc_type(b.get("doc_type"))),
     "/api/image/delete": lambda app, b: app.act(lambda s: s.delete_image(b.get("tc_no"), b.get("name"))),
     "/api/image/move": lambda app, b: app.act(lambda s: s.move_image(b.get("tc_no"), b.get("name"), b.get("to"))),
     "/api/image/reorder": lambda app, b: app.act(lambda s: s.reorder_images(b.get("tc_no"), list(b.get("names") or []))),
