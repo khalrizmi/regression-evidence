@@ -158,7 +158,7 @@ Penting:
 
 ## Pemakaian singkat
 
-1. **New session:** pilih file `.xlsx` → sheet → jenis dokumen (**Regresi** / **SIT**) → kolom Result →
+1. **New session:** pilih file `.xlsx` → sheet → jenis dokumen (**SIT** default / **Regresi**) → kolom Result →
    versi build → **Mulai**.
    Pilih "(tanpa kolom result)" bila semua TC ingin mulai dari Todo.
    Jenis dokumen bisa diganti kapan saja lewat pilihan di header session; screenshot, status, dan
