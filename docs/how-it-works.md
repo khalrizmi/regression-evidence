@@ -110,6 +110,8 @@ flowchart TB
 - Kolom wajib: `No TC`, `Function` (modul), `Scenario` (judul). Opsional: `Type`, `Expected Result`, `Step`,
   `Result Android …`, `Result IOS …`, `Remark`.
 - `Function` kosong (merged cell) mewarisi baris di atasnya.
+- Baris judul bagian (teks hanya di kolom `No TC`, tanpa `Scenario` dan `Step`, mis. "Data Match")
+  dilewati, bukan TC.
 - `No TC` duplikat atau kolom wajib hilang → pesan error yang jelas.
 - Status awal diambil dari kolom Result terpilih: nilai dropdown (`Todo`, `Execute`, `Passed`, `Failed`,
   `No Run`, `Takeout`, `Blocked`, huruf besar/kecil bebas) dipakai apa adanya; `Pass`/`Fail`/`Skip` dari

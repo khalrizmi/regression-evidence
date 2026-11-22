@@ -121,6 +121,8 @@ def load_sheet(path: Path, sheet: str) -> SheetData:
         module = get(row, cols["module"]) or module
         if not tc_no and not title:
             continue
+        if not title and not get(row, cols.get("steps")):
+            continue  # a section title row (text in the No TC column only), e.g. "Data Match"
         if not tc_no:
             raise SheetError(f"Baris {excel_row}: No TC kosong")
         if tc_no in seen:

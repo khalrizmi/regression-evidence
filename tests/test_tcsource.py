@@ -76,3 +76,18 @@ def test_numeric_tc_no(tmp_path):
 def test_missing_function_gets_placeholder(tmp_path):
     path = make_xlsx(tmp_path / "g.xlsx", [["TC01", "M", None, "A"]])
     assert load_sheet(path, "Regresi").cases[0].module == "(Tanpa Function)"
+
+
+def test_section_title_rows_are_not_test_cases(tmp_path):
+    # Team sheets group TCs under title rows with text only in column A, e.g. "Data Match".
+    rows = [
+        ["Data Match", None, None, None, None, None, None, None, None, None, None],
+        ["TC001", "Mobile", "Data Match", "Page is displayed", "Happy Flow", "1. Log in", "Page shown",
+         "Passed", "", "", ""],
+        ["Data Mismatch", None, None, None, None, None, None, None, None, None, None],
+        ["TC002", "Mobile", "Data Mismatch", "", "UnHappy Flow", "1. Log in", "Error shown",
+         "Failed", "", "", ""],
+    ]
+    data = load_sheet(make_xlsx(tmp_path / "s.xlsx", rows), "Regresi")
+    assert [c.tc_no for c in data.cases] == ["TC001", "TC002"]  # TC002 has steps, no scenario: still a TC
+    assert [c.module for c in data.cases] == ["Data Match", "Data Mismatch"]
