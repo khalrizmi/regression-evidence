@@ -56,7 +56,8 @@
         <select id="filter-status">
           <option value="">Semua status</option>
           <option value="open">Belum selesai</option>
-          <option>Todo</option><option>Pass</option><option>Fail</option><option>Skip</option>
+          <option>Todo</option><option>Execute</option><option>Passed</option><option>Failed</option>
+          <option>No Run</option><option>Takeout</option><option>Blocked</option>
         </select>
         <select id="filter-type"></select>
       </div>
@@ -67,9 +68,12 @@
       <div id="detail-body" hidden>
         <div id="detail-head"></div>
         <div id="status-buttons" class="status-buttons">
-          <button class="btn" data-status="Pass">Pass (P)</button>
-          <button class="btn" data-status="Fail">Fail (F)</button>
-          <button class="btn" data-status="Skip">Skip (S)</button>
+          <button class="btn" data-status="Passed">Passed (P)</button>
+          <button class="btn" data-status="Failed">Failed (F)</button>
+          <button class="btn" data-status="Blocked" title="Tidak bisa dites karena ada hambatan; isi Remark">Blocked (B)</button>
+          <button class="btn" data-status="No Run" title="Sengaja tidak dijalankan">No Run (N)</button>
+          <button class="btn" data-status="Takeout" title="Dikeluarkan dari scope: tidak masuk dokumen">Takeout (T)</button>
+          <button class="btn" data-status="Execute" title="Sedang dites; otomatis saat screenshot pertama masuk">Execute (E)</button>
           <button class="btn" data-status="Todo">Todo</button>
         </div>
         <textarea id="remark" rows="2" placeholder="Remark (mis. Terjadi kesalahan pada server)"></textarea>

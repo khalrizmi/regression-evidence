@@ -164,7 +164,8 @@ Penting:
    Jenis dokumen bisa diganti kapan saja lewat pilihan di header session; screenshot, status, dan
    remark tetap, hanya nomor TC dan layout DOCX yang ikut berubah.
 2. Pilih TC (klik, atau `↑` `↓`), jalankan test, lalu tekan tombol screenshot di HP. Gambar masuk ke TC aktif.
-3. Tandai `P` Pass / `F` Fail / `S` Skip, isi Remark bila perlu.
+3. Tandai `P` Passed / `F` Failed / `B` Blocked / `N` No Run / `T` Takeout (TC otomatis menjadi Execute
+   saat screenshot pertama masuk), isi Remark bila perlu.
 4. **Preview Doc** untuk melihat susunan dokumen kapan saja.
 5. **Generate DOCX** → file di `sessions/<session>/out/`. Upload ke Drive / copy ke tab Google Doc.
 6. **Copy Result / Copy Remark** → klik sel baris pertama di kolom yang sesuai di Google Sheet → `Ctrl/Cmd+V`.

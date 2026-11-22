@@ -8,7 +8,7 @@ from helpers import make_xlsx, new_session, png_bytes
 
 def test_create_initial_status_and_files(tmp_path, xlsx):
     s = new_session(tmp_path, xlsx)
-    assert [c["status"] for c in s.data["cases"]] == ["Pass", "Skip", "Fail"]
+    assert [c["status"] for c in s.data["cases"]] == ["Passed", "No Run", "Failed"]
     assert s.data["cases"][1]["remark"] == "Bypass"
     assert (s.root / "source.xlsx").exists()
     assert (s.root / "state.json").exists()
@@ -75,23 +75,23 @@ def test_status_remark_validation(tmp_path, xlsx):
 
 def test_persist_and_reload(tmp_path, xlsx):
     s = new_session(tmp_path, xlsx)
-    s.set_status("TC01", "Fail")
+    s.set_status("TC01", "Failed")
     s.set_remark("TC01", "server error")
     s.set_active("TC03")
     again = Session.open(s.root)
-    assert again.case("TC01")["status"] == "Fail"
+    assert again.case("TC01")["status"] == "Failed"
     assert again.case("TC01")["remark"] == "server error"
     assert again.data["active"] == "TC03"
 
 
 def test_corrupt_state_and_restore(tmp_path, xlsx):
     s = new_session(tmp_path, xlsx)
-    s.set_status("TC01", "Fail")
+    s.set_status("TC01", "Failed")
     (s.root / "state.json").write_text("{broken", "utf-8")
     with pytest.raises(SessionError, match="rusak"):
         Session.open(s.root)
     restored = Session.restore_backup(s.root)
-    assert restored.case("TC01")["status"] in ("Pass", "Fail")
+    assert restored.case("TC01")["status"] in ("Passed", "Failed")
 
 
 def test_progress(tmp_path, xlsx):

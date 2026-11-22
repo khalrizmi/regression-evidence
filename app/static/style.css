@@ -54,15 +54,22 @@ pre { white-space: pre-wrap; font: inherit; margin: 0; background: var(--bg); pa
 .tc-meta { display: flex; gap: 8px; align-items: center; margin-top: 2px; }
 .badge { font-size: 12px; }
 .status { font-size: 11px; padding: 1px 6px; border-radius: 4px; background: var(--bg); }
-.status.Pass { color: #fff; background: var(--ok); }
-.status.Fail { color: #fff; background: var(--bad); }
-.status.Skip { color: #fff; background: var(--muted); }
+.status.st-execute { color: #fff; background: var(--primary); }
+.status.st-passed { color: #fff; background: var(--ok); }
+.status.st-failed { color: #fff; background: var(--bad); }
+.status.st-blocked { color: #fff; background: var(--warn); }
+.status.st-no-run { color: #fff; background: var(--muted); }
+.status.st-takeout { color: var(--muted); background: var(--bg); text-decoration: line-through; }
 
 .detail { overflow: auto; padding: 16px 20px; }
-.status-buttons { display: flex; gap: 6px; margin: 12px 0 8px; }
-.status-buttons .btn.on[data-status=Pass] { background: var(--ok); color: #fff; border-color: var(--ok); }
-.status-buttons .btn.on[data-status=Fail] { background: var(--bad); color: #fff; border-color: var(--bad); }
-.status-buttons .btn.on[data-status=Skip], .status-buttons .btn.on[data-status=Todo] { background: var(--muted); color: #fff; border-color: var(--muted); }
+.status-buttons { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 8px; }
+.status-buttons .btn.on { color: #fff; }
+.status-buttons .btn.on[data-status=Execute] { background: var(--primary); border-color: var(--primary); }
+.status-buttons .btn.on[data-status=Passed] { background: var(--ok); border-color: var(--ok); }
+.status-buttons .btn.on[data-status=Failed] { background: var(--bad); border-color: var(--bad); }
+.status-buttons .btn.on[data-status=Blocked] { background: var(--warn); border-color: var(--warn); }
+.status-buttons .btn.on[data-status="No Run"], .status-buttons .btn.on[data-status=Takeout],
+.status-buttons .btn.on[data-status=Todo] { background: var(--muted); border-color: var(--muted); }
 #remark { width: 100%; font: inherit; padding: 6px; border: 1px solid var(--line); border-radius: 6px; }
 .images { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
 .images figure { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px; width: 220px; }

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import re
 
-RESULT_TEXT = {"Pass": "Pass", "Fail": "Fail", "Skip": "No Run", "Todo": "Todo"}
+# The session statuses are the sheet's Result dropdown values, so they are pasted as they are.
 
 
 def clean_remark(text) -> str:
@@ -24,7 +24,7 @@ def export_column(data: dict, kind: str) -> dict:
         if case is None:
             lines.append("")
         elif kind == "result":
-            lines.append(RESULT_TEXT[case["status"]])
+            lines.append(case["status"])
         else:
             lines.append(clean_remark(case["remark"]))
     return {"text": "\n".join(lines), "first_row": first, "count": len(lines)}

@@ -8,11 +8,11 @@ from helpers import new_session, png_bytes
 
 
 def test_layout_skips_skip_without_images(tmp_path, xlsx):
-    s = new_session(tmp_path, xlsx)  # TC02 = Skip, no images
+    s = new_session(tmp_path, xlsx)  # TC02 = No Run, no images
     layout = doc_layout(s)
     assert [m["module"] for m in layout] == ["Login", "Transfer"]
     assert [c["tc_no"] for c in layout[0]["cases"]] == ["TC01"]
-    s.set_status("TC03", "Skip")
+    s.set_status("TC03", "No Run")
     assert [m["module"] for m in doc_layout(s)] == ["Login"]
 
 
@@ -28,11 +28,10 @@ def test_layout_keeps_skip_with_images_and_widths(tmp_path, xlsx):
 
 def test_warnings(tmp_path, xlsx):
     s = new_session(tmp_path, xlsx)
-    s.set_status("TC02", "Todo")
+    s.set_status("TC02", "Todo")  # not tested yet: listed as Todo, not as missing a screenshot
     w = pre_generate_warnings(s)
     assert w["no_image"] == [
         "Login · TC001 - User input username valid",
-        "Login · TC002 - User input username invalid",
         "Transfer · TC001 - User Transfer Bank A to Bank A",
     ]
     assert w["todo"] == ["Login · TC002 - User input username invalid"]
@@ -116,7 +115,7 @@ def test_sit_docx_one_table_per_case_with_pictures_in_the_cell(tmp_path, xlsx):
     section = doc.sections[0]
     assert (section.page_width, section.page_height) == (Twips(12240), Twips(15840))
     assert [h.text for h in doc.paragraphs if h.style.name.startswith("Heading")] == []
-    assert len(doc.tables) == 2  # TC02 is Skip without screenshots
+    assert len(doc.tables) == 2  # TC02 is No Run without screenshots
     first, second = doc.tables
     assert [r.cells[0].text for r in first.rows] == [
         "No. TC", "Scenario", "Category", "Steps", "Expected Result", "Screen Capture"]

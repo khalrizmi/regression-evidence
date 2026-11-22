@@ -11,12 +11,12 @@ HEADER = ["No TC", "Service Name", "Function", "Scenario", "Type", "Step", "Expe
 def default_rows():
     return [
         ["TC01", "Mobile", "Login", "User input username valid", "Happy Flow", "1. Login", "Home page",
-         "Pass", "Pass", "Pass", ""],
+         "Passed", "Passed", "Passed", ""],
         ["TC02", "Mobile", None, "User input username invalid", "UnHappy Flow", "", "Error Login",
-         "No Run", "", "Pass", "Bypass"],
+         "No Run", "", "Passed", "Bypass"],
         [None] * 11,
         ["TC03", "Mobile", "Transfer", "User Transfer\nBank A to Bank A", "Happy Flow", "", "Success",
-         "Fail", "", "", "Terjadi kesalahan"],
+         "Failed", "", "", "Terjadi kesalahan"],
     ]
 
 

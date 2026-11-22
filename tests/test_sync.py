@@ -32,8 +32,8 @@ def test_diff_and_apply(tmp_path, xlsx):
     assert tc02["removed"] is True and tc02["images"] == ["login_tc02_1.png"]
     assert s.data["active"] is None
     assert s.case("TC01")["title"] == "User input username VALID"
-    assert s.case("TC01")["status"] == "Pass"
-    assert s.case("TC04")["status"] == "Pass"
+    assert s.case("TC01")["status"] == "Passed"
+    assert s.case("TC04")["status"] == "Passed"
     assert s.case("TC03")["row"] == 4
     assert "TC02" not in s.headings()
     assert s.headings()["TC04"] == "TC002 - New case"

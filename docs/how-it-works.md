@@ -1,6 +1,6 @@
 # Cara Kerja Regression Evidence
 
-Tester cukup **memilih TC → menjalankan test → menekan tombol screenshot di HP → menandai Pass/Fail**.
+Tester cukup **memilih TC → menjalankan test → menekan tombol screenshot di HP → menandai Passed/Failed**.
 Tool memasukkan screenshot ke TC yang aktif, menyusun dokumen bukti `.docx`, dan menyiapkan teks
 Result/Remark untuk di-paste ke Google Sheet. Tidak perlu crop, rename, atau tempel gambar manual.
 
@@ -39,13 +39,23 @@ flowchart LR
 2. **Pilih TC:** klik di daftar, atau `↑` / `↓`. TC aktif **tidak** pindah sendiri, karena jumlah
    screenshot per TC berbeda-beda.
 3. **Screenshot di HP:** gambar muncul di TC aktif dalam beberapa detik, dengan toast `+1 → <modul> TC<nnn>`.
-4. **Tandai status:** `P` Pass, `F` Fail, `S` Skip. Isi Remark bila perlu.
+4. **Tandai status:** sama dengan dropdown Result di sheet tim. TC Todo otomatis menjadi **Execute**
+   saat screenshot pertama masuk (juga lewat pindah/salin gambar). Isi Remark bila perlu.
+
+   | Status | Arti | Selesai? | Masuk dokumen |
+   | --- | --- | --- | --- |
+   | Todo | Belum dites | Tidak | Hanya bila ada gambar |
+   | Execute | Sedang dites | Tidak | Ya (wajib gambar) |
+   | Passed / Failed | Hasil test | Ya | Ya (wajib gambar) |
+   | Blocked | Tidak bisa dites karena hambatan; isi Remark | Ya | Hanya bila ada gambar |
+   | No Run | Sengaja tidak dijalankan | Ya | Hanya bila ada gambar |
+   | Takeout | Dikeluarkan dari scope | Ya | **Tidak pernah** |
 5. **Kelola gambar:** klik untuk memperbesar; hapus, pindah ke TC lain, salin ke TC lain (file
    terpisah, gambar asli tetap), atau geser urutan.
    `Del` menghapus gambar terakhir TC aktif.
 6. **Preview Doc:** lihat susunan dokumen kapan saja. Isinya sama dengan hasil `.docx`.
 7. **Generate DOCX:** file disimpan di `sessions/<session>/out/`. Sebelumnya tool memperingatkan
-   TC yang belum punya gambar atau masih Todo.
+   TC Execute/Passed/Failed tanpa gambar, TC yang masih Execute, Blocked tanpa Remark, dan Todo.
 8. **Copy Result / Copy Remark:** klik sel baris pertama di kolom yang sesuai di Google Sheet, lalu `Ctrl/Cmd+V`.
 9. **Hapus session** di layar awal setelah dokumen di-upload. Penghapusan permanen, termasuk screenshot.
 
@@ -56,7 +66,8 @@ Hotkey (nonaktif saat mengetik):
 | Tombol | Fungsi |
 | --- | --- |
 | `↑` / `↓` | TC sebelumnya / berikutnya (mengikuti filter) |
-| `P` / `F` / `S` | Pass / Fail / Skip |
+| `P` / `F` / `B` | Passed / Failed / Blocked |
+| `N` (atau `S`) / `T` / `E` | No Run / Takeout / Execute |
 | `Del` | Hapus gambar terakhir TC aktif |
 | `Esc` | Tutup preview gambar besar |
 
@@ -100,7 +111,9 @@ flowchart TB
   `Result Android …`, `Result IOS …`, `Remark`.
 - `Function` kosong (merged cell) mewarisi baris di atasnya.
 - `No TC` duplikat atau kolom wajib hilang → pesan error yang jelas.
-- Status awal diambil dari kolom Result terpilih: `Pass`/`Fail` tetap, `No Run` → Skip, lainnya → Todo.
+- Status awal diambil dari kolom Result terpilih: nilai dropdown (`Todo`, `Execute`, `Passed`, `Failed`,
+  `No Run`, `Takeout`, `Blocked`, huruf besar/kecil bebas) dipakai apa adanya; `Pass`/`Fail`/`Skip` dari
+  sheet lama menjadi Passed/Failed/No Run; lainnya → Todo. Session lama otomatis dikonversi saat dibuka.
 - Penomoran dokumen: `TC001`, `TC002`, … **per modul**, urut baris sheet.
 
 ---
@@ -227,13 +240,14 @@ Keduanya:
   Bila teks SIT sendiri hampir sepenuh halaman, semua gambar pindah ke halaman lanjutan.
 - Kode: `best_fit` / `plan_blocks` di `app/docx_export.py`; Preview Doc memakai hasil yang sama.
 - Gambar di dokumen adalah salinan yang diperkecil (lebar maks 800 px, JPEG kualitas 85). File asli tidak diubah.
-- TC Skip tanpa gambar dan TC yang dihapus dari Excel tidak dimasukkan.
+- TC Takeout, TC Todo/No Run/Blocked tanpa gambar, dan TC yang dihapus dari Excel tidak dimasukkan.
 
 ### Copy Result / Copy Remark
 
 - Teks satu baris per baris Excel, dari TC pertama sampai TC terakhir. Baris non-TC di antaranya
   menjadi baris kosong, supaya paste tetap sejajar.
-- Result: `Pass`, `Fail`, `No Run` (Skip), `Todo`. Remark: baris baru diganti spasi.
+- Result: status apa adanya, persis nilai dropdown sheet (`Todo`, `Execute`, `Passed`, `Failed`, `No Run`,
+  `Takeout`, `Blocked`). Remark: baris baru diganti spasi.
 - UI menyebut sel tujuan, misalnya "Klik sel … baris 2 di Sheet, lalu Ctrl/Cmd+V".
 - Status dan remark **tidak** ditulis ke file `.xlsx`.
 

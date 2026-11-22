@@ -69,10 +69,10 @@ def test_full_flow(server, xlsx):
     status, body, headers = call(base, "/shots/login_tc01_1.png")
     assert status == 200 and headers["Content-Type"] == "image/png"
 
-    jcall(base, "/api/status", {"tc_no": "TC01", "status": "Fail"})
+    jcall(base, "/api/status", {"tc_no": "TC01", "status": "Failed"})
     jcall(base, "/api/remark", {"tc_no": "TC01", "remark": "server error"})
     _, res = jcall(base, "/api/results?kind=result")
-    assert res["text"] == "Fail\nNo Run\n\nFail" and res["first_row"] == 2
+    assert res["text"] == "Failed\nNo Run\n\nFailed" and res["first_row"] == 2
 
     _, layout = jcall(base, "/api/preview")
     assert layout["layout"][0]["cases"][0]["images"] == ["login_tc01_1.png"]
@@ -236,6 +236,8 @@ def test_sit_session_preview_and_generate(server, xlsx):
             "result_column": "", "build": "1.0", "device": "", "doc_type": "sit"}
     status, st = jcall(base, "/api/sessions/create", body)
     assert status == 200 and st["session"]["doc_type"] == "sit"
+    for tc in ("TC01", "TC02", "TC03"):  # no result column: all Todo, which stays out of the document
+        jcall(base, "/api/status", {"tc_no": tc, "status": "Passed"})
     _, pv = jcall(base, "/api/preview")
     assert pv["doc_type"] == "sit"
     assert [c["label"] for m in pv["layout"] for c in m["cases"]] == ["TC001", "TC002", "TC003"]

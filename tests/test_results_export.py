@@ -6,7 +6,7 @@ from helpers import new_session
 
 def test_result_column_aligned_with_rows(tmp_path, xlsx):
     s = new_session(tmp_path, xlsx)
-    assert export_column(s.data, "result") == {"text": "Pass\nNo Run\n\nFail", "first_row": 2, "count": 4}
+    assert export_column(s.data, "result") == {"text": "Passed\nNo Run\n\nFailed", "first_row": 2, "count": 4}
 
 
 def test_remark_column(tmp_path, xlsx):
@@ -23,7 +23,7 @@ def test_remark_sanitized_for_paste(tmp_path, xlsx):
 def test_removed_cases_excluded(tmp_path, xlsx):
     s = new_session(tmp_path, xlsx)
     s.case("TC03")["removed"] = True
-    assert export_column(s.data, "result")["text"] == "Pass\nNo Run"
+    assert export_column(s.data, "result")["text"] == "Passed\nNo Run"
 
 
 def test_empty_and_bad_kind(tmp_path, xlsx):

@@ -2,7 +2,11 @@
 
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
-const HOTKEY_STATUS = {p: 'Pass', f: 'Fail', s: 'Skip'};
+const HOTKEY_STATUS = {e: 'Execute', p: 'Passed', f: 'Failed', b: 'Blocked', n: 'No Run', s: 'No Run', t: 'Takeout'};
+// Same as app/session.py: DONE counts in progress, NEEDS_EVIDENCE wants a screenshot.
+const DONE = new Set(['Passed', 'Failed', 'No Run', 'Takeout', 'Blocked']);
+const NEEDS_EVIDENCE = new Set(['Execute', 'Passed', 'Failed']);
+const statusClass = (s) => 'st-' + s.toLowerCase().replace(/\s+/g, '-');
 
 let state = null;          // last /api/state payload with a session
 let stateKey = '';         // serialized session part; skip identical renders
@@ -249,7 +253,7 @@ function visibleCases() {
     .sort((a, b) => a.row - b.row)
     .filter((c) => (!mod || c.module === mod)
       && (!type || c.type === type)
-      && (!st || (st === 'open' ? c.status === 'Todo' || (c.status !== 'Skip' && !c.images.length) : c.status === st))
+      && (!st || (st === 'open' ? !DONE.has(c.status) || (NEEDS_EVIDENCE.has(c.status) && !c.images.length) : c.status === st))
       && (!q || `${c.tc_no} ${state.headings[c.tc_no]}`.toLowerCase().includes(q)));
 }
 
@@ -258,7 +262,7 @@ function tcItem(c, heading, removed = false) {
   return `<button class="${cls}" ${removed ? 'disabled' : `data-tc="${esc(c.tc_no)}"`}>
     <span class="tc-head">${esc(heading)}</span>
     <span class="tc-meta"><small class="muted">${esc(c.tc_no)}</small>
-      <span class="badge">📷 ${c.images.length}</span><span class="status ${c.status}">${c.status}</span></span>
+      <span class="badge">📷 ${c.images.length}</span><span class="status ${statusClass(c.status)}">${esc(c.status)}</span></span>
   </button>`;
 }
 
@@ -270,7 +274,7 @@ function renderList() {
   });
   let html = '';
   for (const [mod, cases] of groups) {
-    const done = cases.filter((c) => c.status !== 'Todo').length;
+    const done = cases.filter((c) => DONE.has(c.status)).length;
     html += `<details data-mod="${esc(mod)}" ${collapsed.has(mod) ? '' : 'open'}>
       <summary>${esc(mod)} <small class="muted">${done}/${cases.length}</small></summary>
       ${cases.map((c) => tcItem(c, state.headings[c.tc_no])).join('')}</details>`;
@@ -469,8 +473,10 @@ $('#generate-btn').addEventListener('click', () => guard(async () => {
   const w = await api('/api/warnings');
   const list = (title, items) => items.length
     ? `<h4>${title} (${items.length})</h4><ul class="scroll">${items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : '';
-  if (w.no_image.length || w.todo.length) {
-    const ok = await dialog(`<h3>Generate DOCX?</h3>${list('TC belum ada screenshot', w.no_image)}${list('TC belum ditandai (Todo)', w.todo)}`, 'Tetap generate');
+  if (w.no_image.length || w.todo.length || w.execute.length || w.blocked_no_remark.length) {
+    const ok = await dialog(`<h3>Generate DOCX?</h3>${list('TC belum ada screenshot', w.no_image)}${
+      list('TC masih Execute (belum Passed/Failed)', w.execute)}${list('TC Blocked tanpa Remark', w.blocked_no_remark)}${
+      list('TC belum dites (Todo, tidak masuk dokumen)', w.todo)}`, 'Tetap generate');
     if (!ok) return;
   }
   toast('Membuat DOCX…');

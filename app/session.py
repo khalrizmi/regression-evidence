@@ -13,7 +13,12 @@ from .tcsource import SheetData, TestCase
 
 STATE = "state.json"
 BACKUP = "state.json.bak"
-STATUSES = ("Todo", "Pass", "Fail", "Skip")
+# Same values, in the same order, as the Result dropdown of the team's TC sheets.
+STATUSES = ("Todo", "Execute", "Passed", "Failed", "No Run", "Takeout", "Blocked")
+DONE = frozenset({"Passed", "Failed", "No Run", "Takeout", "Blocked"})  # counted in progress
+NEEDS_EVIDENCE = frozenset({"Execute", "Passed", "Failed"})  # in the document, even without pictures
+OUT_OF_SCOPE = "Takeout"  # never in the document
+LEGACY_STATUS = {"Pass": "Passed", "Fail": "Failed", "Skip": "No Run"}  # sessions and sheets before
 
 
 class SessionError(Exception):
@@ -34,8 +39,12 @@ def unique_path(base: Path) -> Path:
     return path
 
 
+_STATUS_BY_TEXT = {s.lower(): s for s in STATUSES} | {k.lower(): v for k, v in LEGACY_STATUS.items()}
+
+
 def initial_status(value: str) -> str:
-    return {"pass": "Pass", "fail": "Fail", "no run": "Skip"}.get((value or "").strip().lower(), "Todo")
+    """The session status for a Result cell of the sheet; anything unknown starts as Todo."""
+    return _STATUS_BY_TEXT.get(" ".join(str(value or "").split()).lower(), "Todo")
 
 
 DOC_TYPES = ("regression", "sit")
@@ -57,6 +66,12 @@ def case_from_tc(tc: TestCase, result_column: str) -> dict:
     }
 
 
+def _started(case: dict) -> None:
+    """A TC that gets its first picture is being tested."""
+    if case["status"] == "Todo":
+        case["status"] = "Execute"
+
+
 def _now() -> str:
     return datetime.now().isoformat(timespec="seconds")
 
@@ -65,6 +80,8 @@ class Session:
     def __init__(self, root: Path, data: dict):
         self.root = Path(root)
         self.data = data
+        for case in data.get("cases", []):  # sessions from before the team's statuses
+            case["status"] = LEGACY_STATUS.get(case["status"], case["status"])
 
     @property
     def shots(self) -> Path:
@@ -157,7 +174,7 @@ class Session:
 
     def progress(self) -> dict:
         cases = self.active_cases()
-        return {"done": sum(1 for c in cases if c["status"] != "Todo"), "total": len(cases)}
+        return {"done": sum(1 for c in cases if c["status"] in DONE), "total": len(cases)}
 
     def set_active(self, tc_no) -> None:
         if tc_no is not None and self.case(tc_no)["removed"]:
@@ -200,6 +217,7 @@ class Session:
         name = self._new_name(case, ext.lower())
         (self.shots / name).write_bytes(data)
         case["images"].append(name)
+        _started(case)
         self.save()
         return name
 
@@ -230,6 +248,7 @@ class Session:
         case["images"].remove(name)
         self.data.setdefault("retired_names", []).append(name)
         dest["images"].append(new)
+        _started(dest)
         self.save()
         return new
 
@@ -244,6 +263,7 @@ class Session:
         new = self._new_name(dest, Path(name).suffix)
         shutil.copy2(self.shots / name, self.shots / new)
         dest["images"].append(new)
+        _started(dest)
         self.save()
         return new
 

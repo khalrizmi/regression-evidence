@@ -14,6 +14,8 @@ from docx.oxml.ns import qn
 from docx.shared import Cm, Pt, Twips
 from PIL import Image
 
+from .session import NEEDS_EVIDENCE, OUT_OF_SCOPE
+
 MAX_WIDTH_PX = 800
 PLATFORM_LABEL = {"android": "Android", "ios": "iOS"}
 UNSAFE_FILENAME = re.compile(r'[\\/:*?"<>|]+')
@@ -162,7 +164,7 @@ def doc_layout(session) -> list[dict]:
     sit = session.doc_type == "sit"
     modules: dict[str, list[dict]] = {}
     for c in session.active_cases():
-        if c["status"] == "Skip" and not c["images"]:
+        if not in_document(c):
             continue
         names = [n for n in c["images"] if (session.shots / n).is_file()]
         ratios = [_ratio(session.shots / n) for n in names]
@@ -193,16 +195,27 @@ def doc_layout(session) -> list[dict]:
     return [{"module": m, "cases": cases} for m, cases in modules.items()]
 
 
+def in_document(case: dict) -> bool:
+    """Takeout never; Execute/Passed/Failed always; Todo, No Run and Blocked only with pictures."""
+    if case["status"] == OUT_OF_SCOPE:
+        return False
+    return case["status"] in NEEDS_EVIDENCE or bool(case["images"])
+
+
 def pre_generate_warnings(session) -> dict:
     headings = session.headings()
-    no_image, todo = [], []
+    out = {"no_image": [], "todo": [], "execute": [], "blocked_no_remark": []}
     for c in session.active_cases():
         label = f"{c['module']} · {headings[c['tc_no']]}"
-        if c["status"] != "Skip" and not c["images"]:
-            no_image.append(label)
+        if c["status"] in NEEDS_EVIDENCE and not c["images"]:
+            out["no_image"].append(label)
         if c["status"] == "Todo":
-            todo.append(label)
-    return {"no_image": no_image, "todo": todo}
+            out["todo"].append(label)
+        if c["status"] == "Execute":
+            out["execute"].append(label)
+        if c["status"] == "Blocked" and not c["remark"].strip():
+            out["blocked_no_remark"].append(label)
+    return out
 
 
 def shrink(path: Path) -> BytesIO:
