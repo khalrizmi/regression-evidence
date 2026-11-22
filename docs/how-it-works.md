@@ -206,18 +206,26 @@ dan layout saat Preview Doc / Generate.
 **Regresi**
 - Nama file: `Regression _ <sheet> - <Platform> <build>.docx` di `out/`. Generate ulang menimpa file lama.
 - Struktur: **Heading 1** = modul → **Heading 2** = `TC<nnn> - <judul>` (nomor mulai lagi dari TC001 di
-  setiap modul) → semua gambar TC berjajar → page break.
-- Lebar gambar: 1–2 gambar = 7,6 cm; 3 gambar atau lebih = 5,1 cm. Tinggi proporsional.
+  setiap modul) → gambar TC dalam grid → page break.
 
 **SIT**
 - Nama file: `SIT _ <sheet> - <Platform> <build>.docx` di `out/`.
 - Kertas Letter, margin 1,52 cm kiri-kanan dan 1,4 cm atas-bawah, Arial 9pt, tanpa heading.
 - Per TC satu tabel 2 kolom (2,38 cm + 16,16 cm, border hitam tipis, label tebal), lalu page break:
   `No. TC` (TC001… berurutan di seluruh dokumen), `Scenario`, `Category` (kolom Type), `Steps` dan
-  `Expected Result` (satu paragraf per baris), `Screen Capture` (gambar berjajar di sel: 1–2 gambar
-  = 7,4 cm, 3 atau lebih = 5,0 cm).
+  `Expected Result` (satu paragraf per baris), `Screen Capture` (gambar dalam grid di sel).
 
 Keduanya:
+- **Semua gambar satu TC selalu satu halaman dengan judulnya.** Sisa tinggi halaman di bawah judul
+  (Regresi) atau di bawah teks tabel (SIT, tinggi Steps/Expected diperkirakan) dihitung, lalu dipilih
+  jumlah kolom yang memberi gambar terbesar yang masih muat, memakai rasio asli tiap gambar. Lebar
+  maksimal 7,6 cm (Regresi) / 7,4 cm (SIT), jadi 1–2 gambar tetap seperti biasa; makin banyak gambar,
+  makin kecil (contoh Regresi: 3 gambar 5,4 cm, 6 gambar 3×2 4,6 cm, 16 gambar 6×3 2,6 cm).
+  Screenshot panjang (scroll capture) ikut diperkecil supaya tidak terpotong.
+- Hanya bila gambar harus lebih kecil dari 2,5 cm, gambar dibagi rata ke beberapa halaman. Halaman
+  berikutnya diberi judul `TC<nnn> - <judul> (lanjutan)` (SIT: tabel `No. TC` + `Screen Capture`).
+  Bila teks SIT sendiri hampir sepenuh halaman, semua gambar pindah ke halaman lanjutan.
+- Kode: `best_fit` / `plan_blocks` di `app/docx_export.py`; Preview Doc memakai hasil yang sama.
 - Gambar di dokumen adalah salinan yang diperkecil (lebar maks 800 px, JPEG kualitas 85). File asli tidak diubah.
 - TC Skip tanpa gambar dan TC yang dihapus dari Excel tidak dimasukkan.
 

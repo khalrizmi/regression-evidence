@@ -76,7 +76,7 @@ pre { white-space: pre-wrap; font: inherit; margin: 0; background: var(--bg); pa
 .page h2 { font-weight: 400; font-size: 16px; cursor: pointer; }
 .page h2:hover { color: var(--primary); }
 .pv-case { padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px dashed var(--line); }
-.pv-images { display: flex; flex-wrap: wrap; gap: 4px; }
+.pv-images { display: grid; gap: 4px; justify-content: start; }
 /* SIT: US Letter, 1.52 cm side margins, one bordered 2-column table per TC (app/docx_export.py build_sit) */
 .page.sit { max-width: 21.59cm; padding: 1.4cm 1.52cm; font: 9pt Arial, sans-serif; }
 .pv-sit { width: 100%; border-collapse: collapse; table-layout: fixed; margin-bottom: 16px; padding-bottom: 16px; }

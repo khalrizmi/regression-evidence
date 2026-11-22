@@ -22,8 +22,8 @@ def test_layout_keeps_skip_with_images_and_widths(tmp_path, xlsx):
     for color in [(1, 1, 1), (2, 2, 2), (3, 3, 3)]:
         s.add_image(png_bytes(color=color))
     case = doc_layout(s)[0]["cases"][1]
-    assert case["tc_no"] == "TC02" and case["width_cm"] == 5.1
-    assert doc_layout(s)[0]["cases"][0]["width_cm"] == 7.6
+    assert case["tc_no"] == "TC02" and round(case["width_cm"], 1) == 5.4 and case["blocks"][0]["cols"] == 3
+    assert doc_layout(s)[0]["cases"][0]["blocks"] == []  # TC01 has no pictures
 
 
 def test_warnings(tmp_path, xlsx):
@@ -61,7 +61,7 @@ def test_build_docx_structure(tmp_path, xlsx):
     ]
     per_paragraph = [len(p._p.xpath(".//pic:pic")) for p in doc.paragraphs if p._p.xpath(".//pic:pic")]
     assert per_paragraph == [2, 3]
-    assert [round(sh.width.cm, 1) for sh in doc.inline_shapes] == [7.6, 7.6, 5.1, 5.1, 5.1]
+    assert [round(sh.width.cm, 1) for sh in doc.inline_shapes] == [7.6, 7.6, 5.4, 5.4, 5.4]
     assert doc.element.body.xml.count('w:type="page"') == 1
     for part in doc.part.package.image_parts:
         assert Image.open(BytesIO(part.blob)).width <= 800
@@ -151,3 +151,113 @@ def test_unknown_doc_type_is_rejected(tmp_path, xlsx):
     from app.session import SessionError
     with pytest.raises(SessionError):
         new_session(tmp_path, xlsx, doc_type="uat")
+
+
+# ---- every picture of a TC stays on the page of its title -----------------------------------
+
+from app.docx_export import best_fit, plan_blocks  # noqa: E402
+
+PHONE = 2400 / 1080
+
+
+def _height(ratios, cols, width, pad=0.15):
+    rows = [ratios[i:i + cols] for i in range(0, len(ratios), cols)]
+    return sum(width * max(r) + pad for r in rows)
+
+
+def test_best_fit_keeps_few_pictures_at_full_width():
+    assert best_fit([PHONE], 16.59, 19.8, 7.6) == (1, 7.6)
+    assert best_fit([PHONE] * 2, 16.59, 19.8, 7.6) == (2, 7.6)
+
+
+def test_best_fit_shrinks_more_pictures_to_fit_the_page():
+    previous = 7.6
+    for n in range(3, 20):
+        ratios = [PHONE] * n
+        cols, width = best_fit(ratios, 16.59, 19.8, 7.6)
+        assert cols * width + 0.2 * (cols - 1) <= 16.59
+        assert _height(ratios, cols, width) <= 19.8
+        assert width <= previous + 1e-9
+        previous = width
+
+
+def test_best_fit_shrinks_a_long_scroll_screenshot():
+    cols, width = best_fit([4000 / 1080], 16.59, 19.8, 7.6)
+    assert cols == 1 and width * 4000 / 1080 + 0.15 <= 19.8 and width < 7.6
+
+
+def test_plan_continues_on_a_next_page_only_below_the_minimum_width():
+    assert len(plan_blocks([PHONE] * 12, 19.8, 21.0, 16.59, 7.6)) == 1
+    blocks = plan_blocks([PHONE] * 40, 19.8, 21.0, 16.59, 7.6)
+    assert len(blocks) > 1 and sum(b["count"] for b in blocks) == 40
+    for b in blocks:
+        assert b["width_cm"] >= 2.5
+
+
+def test_plan_moves_all_pictures_on_when_the_first_page_has_no_room():
+    blocks = plan_blocks([PHONE] * 2, 1.0, 21.0, 15.78, 7.4)
+    assert blocks[0]["count"] == 0 and blocks[1]["count"] == 2
+
+
+def test_regression_docx_many_pictures_one_page_in_rows(tmp_path, xlsx):
+    s = new_session(tmp_path, xlsx)
+    s.set_active("TC01")
+    for i in range(6):
+        s.add_image(png_bytes(width=108, height=240, color=(i, i, i)))
+    case = doc_layout(s)[0]["cases"][0]
+    assert len(case["blocks"]) == 1 and case["blocks"][0]["cols"] == 3
+    doc = Document(str(build_docx(s)))
+    pics = [p for p in doc.paragraphs if p._p.xpath(".//pic:pic")]
+    assert len(pics) == 1  # all rows of TC01 live in one paragraph, separated by line breaks
+    first = pics[0]
+    assert len(first._p.xpath(".//pic:pic")) == 6
+    assert len(first._p.xpath(".//w:br[not(@w:type)]")) == 1  # 2 rows of 3
+    assert first.paragraph_format.line_spacing == 1.0 and first.paragraph_format.space_after == 0
+
+
+def test_regression_continuation_page_names_its_tc(tmp_path, xlsx):
+    s = new_session(tmp_path, xlsx)
+    s.set_active("TC01")
+    for i in range(40):
+        s.add_image(png_bytes(width=108, height=240, color=(i, i, i)))
+    doc = Document(str(build_docx(s)))
+    texts = [p.text for p in doc.paragraphs]
+    assert "TC001 - User input username valid (lanjutan)" in texts
+
+
+def test_sit_rows_do_not_split_and_long_text_shrinks_pictures(tmp_path, xlsx):
+    from docx.oxml.ns import qn
+
+    s = new_session(tmp_path, xlsx, doc_type="sit")
+    s.set_active("TC01")
+    s.case("TC01")["steps"] = "\n".join(f"{i}. Step number {i} of a long scenario" for i in range(1, 25))
+    s.add_image(png_bytes(width=108, height=240))
+    case = doc_layout(s)[0]["cases"][0]
+    assert len(case["blocks"]) == 1 and case["blocks"][0]["width_cm"] < 7.4
+    doc = Document(str(build_docx(s)))
+    for row in doc.tables[0].rows:
+        assert row._tr.trPr is not None and row._tr.trPr.find(qn("w:cantSplit")) is not None
+    pic_para = doc.tables[0].rows[-1].cells[1].paragraphs[0]
+    assert pic_para.paragraph_format.line_spacing == 1.0 and pic_para.paragraph_format.space_after == 0
+
+
+def test_page_break_paragraph_takes_no_room_on_the_next_page(tmp_path, xlsx):
+    s = new_session(tmp_path, xlsx)
+    doc = Document(str(build_docx(s)))
+    brk = next(p for p in doc.paragraphs if p._p.xpath('.//w:br[@w:type="page"]'))
+    assert brk.paragraph_format.space_after == 0
+    assert brk.paragraph_format.line_spacing.pt <= 1
+
+
+def test_plan_spreads_pictures_evenly_over_pages():
+    counts = [b["count"] for b in plan_blocks([PHONE] * 40, 19.8, 21.0, 16.59, 7.6)]
+    assert sum(counts) == 40 and max(counts) - min(counts) <= 1
+
+
+def test_pictures_have_zero_wrap_distance(tmp_path, xlsx):
+    s = new_session(tmp_path, xlsx)
+    s.set_active("TC01")
+    s.add_image(png_bytes())
+    doc = Document(str(build_docx(s)))
+    inline = doc.inline_shapes[0]._inline
+    assert [inline.get(k) for k in ("distT", "distB", "distL", "distR")] == ["0"] * 4

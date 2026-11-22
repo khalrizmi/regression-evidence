@@ -421,25 +421,32 @@ function setView(v) {
 async function renderPreview() {
   await guard(async () => {
     const {layout, doc_type: docType} = await api('/api/preview');
-    const images = (c) => `<div class="pv-images">${c.images.map((n) =>
-      `<img src="/shots/${encodeURIComponent(n)}" style="width:${c.width_cm}cm" alt="">`).join('')}</div>`;
+    // Same rows and widths as the DOCX: the server fits each TC's pictures onto its page.
+    const images = (b) => b.images.length ? `<div class="pv-images" style="grid-template-columns:repeat(${b.cols}, ${b.width_cm}cm)">${
+      b.images.map((n) => `<img src="/shots/${encodeURIComponent(n)}" style="width:${b.width_cm}cm" alt="">`).join('')}</div>` : '';
+    const blocks = (c) => c.blocks.length ? c.blocks : [{images: [], cols: 1, width_cm: 0}];
     const lines = (text) => (text || '').split('\n').filter((l) => l.trim()).map((l) => `<p>${esc(l)}</p>`).join('');
-    const sitCase = (c) => `
+    const later = (c) => c.blocks.length > 1 ? '<p class="muted">(lanjut di halaman berikutnya)</p>' : '';
+    const sitCase = (c) => blocks(c).map((b, i) => i === 0 ? `
       <table class="pv-sit">
         <tr><th>No. TC</th><td><span class="pv-link" data-tc="${esc(c.tc_no)}">${esc(c.label)}</span></td></tr>
         <tr><th>Scenario</th><td>${esc(c.title)}</td></tr>
         <tr><th>Category</th><td>${esc(c.type)}</td></tr>
         <tr><th>Steps</th><td>${lines(c.steps)}</td></tr>
         <tr><th>Expected Result</th><td>${lines(c.expected)}</td></tr>
-        <tr><th>Screen Capture</th><td>${images(c)}</td></tr>
-      </table>`;
+        <tr><th>Screen Capture</th><td>${images(b) || later(c)}</td></tr>
+      </table>` : `
+      <table class="pv-sit">
+        <tr><th>No. TC</th><td><span class="pv-link" data-tc="${esc(c.tc_no)}">${esc(c.label)} (lanjutan)</span></td></tr>
+        <tr><th>Screen Capture</th><td>${images(b)}</td></tr>
+      </table>`).join('');
     const body = docType === 'sit'
       ? layout.flatMap((m) => m.cases).map(sitCase).join('')
-      : layout.map((m) => `<h1>${esc(m.module)}</h1>` + m.cases.map((c) => `
+      : layout.map((m) => `<h1>${esc(m.module)}</h1>` + m.cases.map((c) => blocks(c).map((b, i) => `
       <section class="pv-case">
-        <h2 data-tc="${esc(c.tc_no)}">${esc(c.heading)}</h2>
-        ${images(c)}
-      </section>`).join('')).join('');
+        <h2 data-tc="${esc(c.tc_no)}">${esc(c.heading)}${i ? ' (lanjutan)' : ''}</h2>
+        ${images(b)}
+      </section>`).join('')).join('')).join('');
     const page = docType === 'sit' ? 'page sit' : 'page';
     $('#preview-view').innerHTML = `<div class="${page}">${body || '<p class="muted">Belum ada isi.</p>'}</div>`;
   });
